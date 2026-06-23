@@ -31,3 +31,24 @@ FROM dirty_cafe_sales;
 
 
 -- 1. Remove Dupes
+
+-- Check whether there are duplicates among the Transaction IDs
+SELECT DISTINCT `Transaction ID`
+FROM cafe_sales_staging
+ORDER BY 1;
+
+/** 10,000 rows returned, meaning every transaction ID is unique
+Since each transaction ID is unique, it would be very hard to verify whether two transactions are duplicates of each other
+	EVEN IF every other column in the entries are exactly the same.
+It is entirely possible that two separate customers purchased the same exact quantity of an item using the same payment method at the same location on the same day.
+IF the transaction date ALSO had a timestamp, duplicates might be easier to identify in cases where the timestamps were exactly the same down to the millisecond.
+**/
+
+
+-- 2. Standardize
+
+SELECT * FROM cafe_sales_staging;
+
+SELECT `Transaction ID`, TRIM(`Transaction ID`)
+FROM cafe_sales_staging
+WHERE `Transaction ID` != TRIM(`Transaction ID`);
