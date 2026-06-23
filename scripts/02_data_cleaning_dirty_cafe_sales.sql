@@ -13,4 +13,21 @@ There are a lot of blanks, UNKNOWN, and ERROR values in the data that make colum
 Ordinarily, I would clean these up in the .csv BEFORE I try to import it into MySQL Workbench.
 However, since the point of this exercise is to practice cleaning via SQL, I am going to import all columns as text regardless
     of original data type, and I will cast them to the correct data types at the end of the exercise.
+**/
 
+
+SELECT * FROM cafe_sales.dirty_cafe_sales;
+
+
+-- Start by creating a staging table so we can make changes to a copy of the dataset without affecting the original.
+CREATE TABLE cafe_sales_staging
+LIKE dirty_cafe_sales;
+
+SELECT * FROM cafe_sales_staging;
+
+INSERT cafe_sales_staging
+SELECT *
+FROM dirty_cafe_sales;
+
+
+-- 1. Remove Dupes
