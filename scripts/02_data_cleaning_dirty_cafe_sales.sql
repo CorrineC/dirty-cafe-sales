@@ -42,6 +42,7 @@ Since each transaction ID is unique, it would be very hard to verify whether two
 	EVEN IF every other column in the entries are exactly the same.
 It is entirely possible that two separate customers purchased the same exact quantity of an item using the same payment method at the same location on the same day.
 IF the transaction date ALSO had a timestamp, duplicates might be easier to identify in cases where the timestamps were exactly the same down to the millisecond.
+So in this case, I would rather keep all transactions.
 **/
 
 
@@ -49,6 +50,45 @@ IF the transaction date ALSO had a timestamp, duplicates might be easier to iden
 
 SELECT * FROM cafe_sales_staging;
 
+-- Check that column values do not have variations or any extraneous spaces or trailing punctuation
 SELECT `Transaction ID`, TRIM(`Transaction ID`)
 FROM cafe_sales_staging
 WHERE `Transaction ID` != TRIM(`Transaction ID`);
+
+SELECT DISTINCT Item
+FROM cafe_sales_staging;
+
+SELECT DISTINCT `Payment Method`
+FROM cafe_sales_staging;
+
+SELECT DISTINCT `Payment Method`
+FROM cafe_sales_staging;
+
+SELECT DISTINCT Location
+FROM cafe_sales_staging;
+
+-- Change Date Formatting for Transaction Date
+SELECT `Transaction Date`, str_to_date(`Transaction Date`, '%m/%d/%Y')
+FROM cafe_sales_staging;
+
+SELECT DISTINCT `Transaction Date`
+FROM cafe_sales_staging
+WHERE `Transaction DATE` NOT LIKE '%/%/%';
+
+-- Change any blanks, ERRORs, or UNKNOWNs in Transaction Date column to NULL
+UPDATE cafe_sales_staging
+SET `Transaction Date` = NULL
+WHERE `Transaction DATE` NOT LIKE '%/%/%';
+
+-- Change date formatting
+UPDATE cafe_sales_staging
+SET `Transaction Date` = STR_TO_DATE(`Transaction Date`, '%m/%d/%Y');
+
+-- Change data type for Transaction Date column
+ALTER TABLE cafe_sales_staging
+MODIFY COLUMN `Transaction Date` DATE;
+
+SELECT * FROM cafe_sales_staging;
+
+
+-- 3. NULL/blank values
