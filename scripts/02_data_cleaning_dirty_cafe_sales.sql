@@ -223,4 +223,18 @@ WHERE `Location` = 'UNKNOWN'
 	OR `Location` = 'ERROR'
     OR `Location` = '';
     
-SELECT * FROM cafe_sales_staging2;
+SELECT * FROM cafe_sales_staging2
+ORDER BY `Transaction Date` ASC;
+
+-- Start filling in missing items/price per unit
+SELECT DISTINCT Item, `Price Per Unit`
+FROM cafe_sales_staging2
+WHERE Item IS NOT NULL
+ORDER BY Item;
+
+/** I wanted to fill in item names in transactions as well, but I'm realizing that in many cases the price per unit is not unique to the item.
+For example:
+	Juice, Cake = 3
+    Sandwich, Smoothie = 4
+So I will start by simply update Price Per Unit for an Item where its price is known. I will not touch transactions where the item is null.
+**/
