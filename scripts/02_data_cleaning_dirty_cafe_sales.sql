@@ -39,7 +39,8 @@ ORDER BY 1;
 
 /** 10,000 rows returned, meaning every transaction ID is unique
 Since each transaction ID is unique, it would be very hard to verify whether two transactions are duplicates of each other
-	EVEN IF every other column in the entries are exactly the same.
+EVEN IF every other column in the entries are exactly the same.
+
 It is entirely possible that two separate customers purchased the same exact quantity of an item using the same payment method at the same location on the same day.
 IF the transaction date ALSO had a timestamp, duplicates might be easier to identify in cases where the timestamps were exactly the same down to the millisecond.
 So in this case, I would rather keep all transactions.
@@ -92,3 +93,134 @@ SELECT * FROM cafe_sales_staging;
 
 
 -- 3. NULL/blank values
+
+/** I want to standardize any blanks, UNKNOWN, and ERROR values to NULL.
+
+I have considered whether to keep the distinctions between UNKNOWN and ERROR so as to track potential
+"malfunctions" in the system.
+
+In a real world setting, this would be useful information! For example, seeing a lot of errors suddenly pop up
+for certain types of transactions might indicate a system glitch. An unknown might be an item that was
+entered manually because it's not yet in the POS system or because a discount was applied manually.
+
+But here we are dealing a small dataset where each transaction has few attributes, so I'm just going to
+standardize everything to null and complete missing fields on transactions where I have enough info to do so.
+
+Just in case, I will make these changes on a new table.
+**/
+CREATE TABLE cafe_sales_staging2
+LIKE cafe_sales_staging;
+
+SELECT * FROM cafe_sales_staging2;
+
+INSERT cafe_sales_staging2
+SELECT *
+FROM cafe_sales_staging;
+
+SELECT *
+FROM cafe_sales_staging2
+WHERE Item = 'UNKNOWN'
+	OR Item = 'ERROR'
+    OR Item = '';
+    
+UPDATE cafe_sales_staging2
+SET Item = NULL
+WHERE Item = 'UNKNOWN'
+	OR Item = 'ERROR'
+    OR Item = '';
+
+SELECT DISTINCT Item FROM cafe_sales_staging2; -- Now all items that are blank, unknow, or error are NULL
+
+-- I will return later to the Item section to fill in some of those nulls where I know the pricing matches a specific item
+
+-- Now I will handle errors/blanks/unknowns in Quantity
+-- Later I can return to fill in missing data. The reason I'm standardizing to nulls before filling in missing data is because
+-- it will make more complex queries dealing with missing values easier to set up in the future.
+SELECT DISTINCT Quantity FROM cafe_sales_staging2;
+
+SELECT *
+FROM cafe_sales_staging2
+WHERE Quantity = 'UNKNOWN'
+	OR Quantity = 'ERROR'
+    OR Quantity = '';
+    
+UPDATE cafe_sales_staging2
+SET Quantity = NULL
+WHERE Quantity = 'UNKNOWN'
+	OR Quantity = 'ERROR'
+    OR Quantity = '';
+    
+SELECT DISTINCT Quantity FROM cafe_sales_staging2;
+
+ALTER TABLE cafe_sales_staging2
+MODIFY COLUMN Quantity INT;
+
+SELECT * FROM cafe_sales_staging2;
+
+-- Unknowns in price per unit
+SELECT DISTINCT `Price Per Unit` FROM cafe_sales_staging2;
+
+SELECT *
+FROM cafe_sales_staging2
+WHERE `Price Per Unit` = 'UNKNOWN'
+	OR `Price Per Unit` = 'ERROR'
+    OR `Price Per Unit` = '';
+    
+UPDATE cafe_sales_staging2
+SET `Price Per Unit` = NULL
+WHERE `Price Per Unit` = 'UNKNOWN'
+	OR `Price Per Unit` = 'ERROR'
+    OR `Price Per Unit` = '';
+    
+ALTER TABLE cafe_sales_staging2
+MODIFY COLUMN `Price Per Unit` FLOAT;
+
+-- Resolve Unknowns in Total Spent
+SELECT DISTINCT `Total Spent` FROM cafe_sales_staging2;
+
+SELECT *
+FROM cafe_sales_staging2
+WHERE `Total Spent` = 'UNKNOWN'
+	OR `Total Spent` = 'ERROR'
+    OR `Total Spent` = '';
+    
+UPDATE cafe_sales_staging2
+SET `Total Spent` = NULL
+WHERE `Total Spent` = 'UNKNOWN'
+	OR `Total Spent` = 'ERROR'
+    OR `Total Spent` = '';
+    
+ALTER TABLE cafe_sales_staging2
+MODIFY COLUMN `Total Spent` FLOAT;
+
+-- Resolve Unknowns in Payment Method
+SELECT DISTINCT `Payment Method` FROM cafe_sales_staging2;
+
+SELECT *
+FROM cafe_sales_staging2
+WHERE `Payment Method` = 'UNKNOWN'
+	OR `Payment Method` = 'ERROR'
+    OR `Payment Method` = '';
+    
+UPDATE cafe_sales_staging2
+SET `Payment Method` = NULL
+WHERE `Payment Method` = 'UNKNOWN'
+	OR `Payment Method` = 'ERROR'
+    OR `Payment Method` = '';
+    
+-- Resolve Unknowns in Location
+SELECT DISTINCT `Location` FROM cafe_sales_staging2;
+
+SELECT *
+FROM cafe_sales_staging2
+WHERE `Location` = 'UNKNOWN'
+	OR `Location` = 'ERROR'
+    OR `Location` = '';
+    
+UPDATE cafe_sales_staging2
+SET `Location` = NULL
+WHERE `Location` = 'UNKNOWN'
+	OR `Location` = 'ERROR'
+    OR `Location` = '';
+    
+SELECT * FROM cafe_sales_staging2;
