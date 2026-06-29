@@ -236,5 +236,23 @@ ORDER BY Item;
 For example:
 	Juice, Cake = 3
     Sandwich, Smoothie = 4
-So I will start by simply update Price Per Unit for an Item where its price is known. I will not touch transactions where the item is null.
+So I will start by simply updating Price Per Unit for an Item where its price is known. I will not touch transactions where the item is null.
 **/
+
+SELECT DISTINCT
+    cs1.Item,
+    cs1.`Price Per Unit`,
+    cs2.`Price Per Unit`
+FROM cafe_sales_staging2 cs1
+JOIN cafe_sales_staging2 cs2
+	ON cs1.Item = cs2.Item
+WHERE cs1.Item IS NOT NULL
+AND cs2.`Price Per Unit` IS NOT NULL;
+
+UPDATE cafe_sales_staging2 cs1
+JOIN cafe_sales_staging2 cs2
+	ON cs1.Item = cs2.Item
+SET cs1.`Price Per Unit` = cs2.`Price Per Unit`
+WHERE cs1.Item IS NOT NULL
+AND cs1.`Price Per Unit` IS NULL
+AND cs2.`Price Per Unit` IS NOT NULL;
