@@ -232,6 +232,7 @@ FROM cafe_sales_staging2
 WHERE Item IS NOT NULL
 ORDER BY Item;
 
+
 /** I wanted to fill in item names in transactions as well, but I'm realizing that in many cases the price per unit is not unique to the item.
 For example:
 	Juice, Cake = 3
@@ -256,3 +257,66 @@ SET cs1.`Price Per Unit` = cs2.`Price Per Unit`
 WHERE cs1.Item IS NOT NULL
 AND cs1.`Price Per Unit` IS NULL
 AND cs2.`Price Per Unit` IS NOT NULL;
+
+
+/** Just scrolling through the list, I see missing values in item Quantity that could be filled in.
+We can calculate it from Total Spent / Price Per Unit in rows where we have both **/
+
+SELECT `Transaction ID`,
+	Item,
+    Quantity,
+    `Price Per Unit`,
+    `Total Spent`,
+    (`Total Spent` / `Price Per Unit`)
+FROM cafe_sales_staging2
+WHERE Quantity IS NULL
+AND `Price Per Unit` IS NOT NULL
+AND `Total Spent` IS NOT NULL;
+
+UPDATE cafe_sales_staging2
+SET Quantity = `Total Spent` / `Price Per Unit`
+WHERE Quantity IS NULL
+AND `Price Per Unit` IS NOT NULL
+AND `Total Spent` IS NOT NULL;
+
+-- I will do the same for the missing values in Price Per Unit and Total Spent
+SELECT `Transaction ID`,
+	Item,
+    Quantity,
+    `Price Per Unit`,
+    `Total Spent`,
+    (`Total Spent` / Quantity)
+FROM cafe_sales_staging2
+WHERE `Price Per Unit` IS NULL
+AND Quantity IS NOT NULL
+AND `Total Spent` IS NOT NULL;
+
+UPDATE cafe_sales_staging2
+SET `Price Per Unit` = `Total Spent` / Quantity
+WHERE `Price Per Unit` IS NULL
+AND Quantity IS NOT NULL
+AND `Total Spent` IS NOT NULL;
+
+SELECT `Transaction ID`,
+	Item,
+    Quantity,
+    `Price Per Unit`,
+    `Total Spent`,
+    (Quantity * `Price Per Unit`)
+FROM cafe_sales_staging2
+WHERE `Total Spent` IS NULL
+AND Quantity IS NOT NULL
+AND `Price Per Unit` IS NOT NULL;
+
+UPDATE cafe_sales_staging2
+SET `Total Spent` = Quantity * `Price Per Unit`
+WHERE `Total Spent` IS NULL
+AND Quantity IS NOT NULL
+AND `Price Per Unit` IS NOT NULL;
+
+
+/** Almost Done! There are a few missing items that we can still fill in. 
+Some items share the same price with another item, which makes it impossible to tell what the transaction was based on price per unit.
+Others have unique price points: coffee, cookie, salad, and tea. I am going to try filling in missing item values for items
+whose prices identify them. **/
+
